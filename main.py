@@ -13,12 +13,15 @@ username = "aljrah49"
 password = "123456789Mmm"
 stream_url = "https://kick.com/noorgamer"
 
+started = False  # نستخدم متغير علشان ما يكرر التشغيل
+
 def start_bot():
+    global started
     while True:
         now = datetime.datetime.now()
 
-        # نتحقق هل الساعة 6:00 مساءً
-        if now.hour == 18 and now.minute == 0:
+        if now.hour >= 18 and not started:
+            started = True  # نمنع تشغيل البوت أكثر من مرة
             options = webdriver.ChromeOptions()
             options.add_argument("--headless")
             options.add_argument("--no-sandbox")
@@ -47,14 +50,16 @@ def start_bot():
             finally:
                 driver.quit()
 
-        # ننتظر دقيقة ونتحقق مرة ثانية
         time.sleep(60)
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "البوت شغال وينتظر الساعة 6 مساءً!"
+    if started:
+        return "البوت شغال ويتابع البث!"
+    else:
+        return "البوت شغال وينتظر الساعة 6 مساءً!"
 
 if __name__ == '__main__':
     threading.Thread(target=start_bot).start()
