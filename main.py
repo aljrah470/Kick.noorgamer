@@ -1,62 +1,38 @@
-from flask import Flask  
-import os  
-import threading  
-import time  
-import datetime  
-from selenium import webdriver  
-from selenium.webdriver.common.by import By  
-from selenium.webdriver.common.keys import Keys  
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager  
-  
-# بيانات الحساب  
-username = "aljrah49"  
-password = "123456789Mmm"  
-stream_url = "https://kick.com/noorgamer"  
-  
-def start_bot():  
-    while True:  
-        try:
-            print("جاري تشغيل البوت ومحاولة الدخول إلى البث...")
-            options = webdriver.ChromeOptions()  
-            options.add_argument("--headless")  
-            options.add_argument("--no-sandbox")  
-            options.add_argument("--disable-dev-shm-usage")  
-  
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=options)
-  
-            driver.get("https://kick.com/login")  
-            time.sleep(5)  
-  
-            driver.find_element(By.NAME, "username").send_keys(username)  
-            driver.find_element(By.NAME, "password").send_keys(password)  
-            driver.find_element(By.NAME, "password").send_keys(Keys.RETURN)  
-  
-            time.sleep(7)  
-  
-            driver.get(stream_url)  
-            print("تم تسجيل الدخول بنجاح والدخول للبث!")  
-  
-            # البقاء لمدة 8 ساعات  
-            time.sleep(8 * 60 * 60)  
-  
-        except Exception as e:  
-            print(f"حدث خطأ: {e}")  
-        finally:  
-            driver.quit()  
-  
-        # إعادة المحاولة بعد دقيقة لو صار خطأ  
-        time.sleep(60)  
-  
-app = Flask(__name__)  
-  
-@app.route('/')  
-def home():  
-    return "البوت شغال ويتابع البث!!"  
-  
-if __name__ == '__main__':  
-    threading.Thread(target=start_bot).start()  
-  
-    port = int(os.environ.get("PORT", 10000))  
-    app.run(host='0.0.0.0', port=port)
+import asyncio
+from playwright.async_api import async_playwright
+from datetime import datetime, timedelta
+
+USERNAME = "aljrah49"
+PASSWORD = "123456789Mmm."
+STREAM_URL = "https://kick.com/noorgamer"
+WATCH_DURATION_HOURS = 8  # عدد الساعات اللي يبقى فيها يطالع البث
+
+async def login_and_watch():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)  # Headless True عشان يشتغل في Render
+        context = await browser.new_context()
+        page = await context.new_page()
+
+        # افتح موقع تسجيل الدخول
+        await page.goto("https://kick.com/login", timeout=60000)
+        await page.fill('input[name="email"]', USERNAME)
+        await page.fill('input[name="password"]', PASSWORD)
+        await page.click('button:has-text("Login")')
+        await page.wait_for_timeout(5000)  # انتظر بعد تسجيل الدخول 5 ثواني
+
+        # افتح رابط البث
+        await page.goto(STREAM_URL, timeout=60000)
+        print(f"[{datetime.now()}] Watching stream...")
+
+        # خله يطالع البث 8 ساعات
+        watch_duration_seconds = WATCH_DURATION_HOURS * 60 * 60
+        await page.wait_for_timeout(watch_duration_seconds * 1000)
+
+        print(f"[{datetime.now()}] Finished watching.")
+        await browser.close()
+
+def run():
+    asyncio.run(login_and_watch())
+
+if __name__ == "__main__":
+    run()
