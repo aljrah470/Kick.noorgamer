@@ -42,6 +42,12 @@ async def login_and_watch():
 
 def run():
     asyncio.run(login_and_watch())
-
 if __name__ == "__main__":
     run()
+import subprocess
+
+# تثبيت Playwright (إذا لم يكن مثبتًا مسبقًا)
+subprocess.run(["pip", "install", "playwright"])
+subprocess.run(["python3", "-m", "playwright.install"])
+
+# بعد التثبيت، استمر في الكود
