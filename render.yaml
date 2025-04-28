@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: Kick.noorgamer
+    env: python
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      playwright install
+    startCommand: "python main.py"
+    envVars:
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: 0
