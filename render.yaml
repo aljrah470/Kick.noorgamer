@@ -1,7 +1,9 @@
 services:
-  - type: web
-    name: kick-noorgamer
+  - type: cron
+    name: kick-stream-watcher
+    schedule: "0 19 * * *"  # 10 مساء بتوقيت السعودية = 7 مساء UTC
     env: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: python main.py
+    buildCommand: pip install playwright
+    startCommand: |
+      playwright install chromium
+      python watch_kick_stream.py
