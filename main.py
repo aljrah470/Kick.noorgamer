@@ -6,6 +6,7 @@ import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 # بيانات الحساب
@@ -13,21 +14,20 @@ username = "aljrah49"
 password = "123456789Mmm"
 stream_url = "https://kick.com/noorgamer"
 
-started = False  # نستخدم متغير علشان ما يكرر التشغيل
-
 def start_bot():
-    global started
     while True:
         now = datetime.datetime.now()
 
-        if now.hour >= 18 and not started:
-            started = True  # نمنع تشغيل البوت أكثر من مرة
+        # تحقق من الوقت: 6:00 مساءً
+        if now.hour == 18 and now.minute == 0:
             options = webdriver.ChromeOptions()
             options.add_argument("--headless")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
 
-            driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+            # صححنا السطر هذا:
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=options)
 
             try:
                 driver.get("https://kick.com/login")
@@ -42,7 +42,7 @@ def start_bot():
                 driver.get(stream_url)
                 print("تم الدخول للبث!")
 
-                # البقاء لمدة 8 ساعات
+                # يبقى يشاهد لمدة 8 ساعات
                 time.sleep(8 * 60 * 60)
 
             except Exception as e:
@@ -50,16 +50,14 @@ def start_bot():
             finally:
                 driver.quit()
 
+        # ينتظر دقيقة ويراجع من جديد
         time.sleep(60)
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    if started:
-        return "البوت شغال ويتابع البث!"
-    else:
-        return "البوت شغال وينتظر الساعة 6 مساءً!"
+    return "البوت شغال وجاهز يتابع البث!"
 
 if __name__ == '__main__':
     threading.Thread(target=start_bot).start()
