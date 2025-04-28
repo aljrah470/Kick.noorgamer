@@ -1,34 +1,43 @@
 import asyncio
 from playwright.async_api import async_playwright
-from datetime import datetime, timedelta
+import datetime
 
-USERNAME = "aljrah49"
-PASSWORD = "123456789Mmm."
-STREAM_URL = "https://kick.com/noorgamer"
-WATCH_DURATION_HOURS = 8  # عدد الساعات اللي يبقى فيها يطالع البث
+USER_EMAIL = "aljrah49"
+USER_PASSWORD = "123456789Mmm."
+WATCH_URL = "https://kick.com/noorgamer"
+
+# مدة المشاهدة بالثواني (8 ساعات = 8 * 60 * 60)
+WATCH_DURATION = 8 * 60 * 60
 
 async def login_and_watch():
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)  # Headless True عشان يشتغل في Render
-        context = await browser.new_context()
-        page = await context.new_page()
+        browser = await p.chromium.launch(headless=True, args=["--no-sandbox"])
+        page = await browser.new_page()
 
-        # افتح موقع تسجيل الدخول
-        await page.goto("https://kick.com/login", timeout=60000)
-        await page.fill('input[name="email"]', USERNAME)
-        await page.fill('input[name="password"]', PASSWORD)
-        await page.click('button:has-text("Login")')
-        await page.wait_for_timeout(5000)  # انتظر بعد تسجيل الدخول 5 ثواني
+        # افتح موقع Kick
+        await page.goto("https://kick.com")
 
-        # افتح رابط البث
-        await page.goto(STREAM_URL, timeout=60000)
-        print(f"[{datetime.now()}] Watching stream...")
+        # اضغط تسجيل الدخول
+        await page.click('text=Log In')
 
-        # خله يطالع البث 8 ساعات
-        watch_duration_seconds = WATCH_DURATION_HOURS * 60 * 60
-        await page.wait_for_timeout(watch_duration_seconds * 1000)
+        # اكتب الإيميل والباسوورد
+        await page.fill('input[name="email"]', USER_EMAIL)
+        await page.fill('input[name="password"]', USER_PASSWORD)
 
-        print(f"[{datetime.now()}] Finished watching.")
+        # اضغط تسجيل الدخول
+        await page.click('button:has-text("Log In")')
+
+        # انتظر شوي للتأكد من تسجيل الدخول
+        await page.wait_for_timeout(5000)
+
+        # رح للبث المطلوب
+        await page.goto(WATCH_URL)
+
+        # خلي الصفحة مفتوحة لمدة المشاهدة المطلوبة
+        print(f"Started watching at {datetime.datetime.now()}")
+        await page.wait_for_timeout(WATCH_DURATION * 1000)
+        print(f"Finished watching at {datetime.datetime.now()}")
+
         await browser.close()
 
 def run():
