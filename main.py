@@ -3,7 +3,6 @@ import os
 import threading
 import time
 import datetime
-import pytz  # <-- مكتبة التوقيتات
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -15,33 +14,14 @@ username = "aljrah49"
 password = "123456789Mmm"
 stream_url = "https://kick.com/noorgamer"
 
-# توقيت السعودية
-saudi_tz = pytz.timezone('Asia/Riyadh')
-
-def wait_until_10pm_saudi():
-    while True:
-        now = datetime.datetime.now(saudi_tz)
-        if now.hour == 22:
-            print("حان وقت الدخول إلى البث (الساعة 10 مساءً بتوقيت السعودية)!")
-            break
-        else:
-            seconds_until_next_minute = 60 - now.second
-            print(f"الوقت الآن {now.strftime('%H:%M:%S')} بتوقيت السعودية. في انتظار الساعة 10 مساءً...")
-            time.sleep(seconds_until_next_minute)
-
 def start_bot():
     while True:
-        driver = None
         try:
-            wait_until_10pm_saudi()
-
             print("جاري تشغيل البوت ومحاولة الدخول إلى البث...")
             options = webdriver.ChromeOptions()
-            options.add_argument("--headless=new")
+            options.add_argument("--headless")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
-            options.add_argument("--disable-gpu")
-            options.add_argument("--window-size=1920,1080")
 
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
@@ -56,19 +36,17 @@ def start_bot():
             time.sleep(7)
 
             driver.get(stream_url)
-            print("تم تسجيل الدخول والدخول للبث بنجاح!")
+            print("تم تسجيل الدخول بنجاح والدخول للبث!")
 
-            # البقاء على البث لمدة 8 ساعات
+            # البقاء لمدة 8 ساعات
             time.sleep(8 * 60 * 60)
 
         except Exception as e:
             print(f"حدث خطأ: {e}")
         finally:
-            if driver:
-                driver.quit()
+            driver.quit()
 
-        print("إعادة المحاولة في اليوم التالي...")
-        # ننتظر حتى اليوم الثاني
+        # إعادة المحاولة بعد دقيقة لو صار خطأ
         time.sleep(60)
 
 app = Flask(__name__)
