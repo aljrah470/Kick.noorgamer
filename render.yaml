@@ -1,9 +1,0 @@
-services:
-  - type: cron
-    name: kick-stream-watcher
-    schedule: "0 19 * * *"  # 10 مساء بتوقيت السعودية = 7 مساء UTC
-    env: python
-    buildCommand: pip install playwright
-    startCommand: |
-      playwright install chromium
-      python watch_kick_stream.py
