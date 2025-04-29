@@ -15,6 +15,28 @@ from status_manager import load_status, save_status
 app = Flask(__name__)
 bot_thread = None
 
+# المتغيرات العامة
+bot_running = False
+watching = False
+points = 0
+start_timestamp = 0
+
+def save_current_status():
+    save_status(bot_running, watching, points, start_timestamp)
+
+def initialize_status():
+    global bot_running, watching, points, start_timestamp, bot_thread
+    status = load_status()
+    bot_running = status["bot_running"]
+    watching = status["watching"]
+    points = status["points"]
+    start_timestamp = status["start_timestamp"]
+
+    # إعادة تشغيل البوت تلقائيًا إذا كان يعمل قبل توقف السيرفر
+    if bot_running:
+        bot_thread = threading.Thread(target=start_bot)
+        bot_thread.start()
+
 USERNAME = "aljrah49"
 PASSWORD = "123456789Mmm."
 STREAM_URL = "https://kick.com/noorgamer"
@@ -24,14 +46,10 @@ def save_cookies(driver, path="cookies.pkl"):
         pickle.dump(driver.get_cookies(), file)
 
 def load_cookies(driver, path="cookies.pkl"):
-    try:
-        with open(path, "rb") as file:
-            cookies = pickle.load(file)
-            for cookie in cookies:
-                driver.add_cookie(cookie)
-        return True
-    except:
-        return False
+    with open(path, "rb") as file:
+        cookies = pickle.load(file)
+        for cookie in cookies:
+            driver.add_cookie(cookie)
 
 def login(driver):
     driver.get("https://kick.com/login")
@@ -54,17 +72,18 @@ def random_human_behavior(driver):
             actions.move_by_offset(x_offset, y_offset).perform()
             actions.reset_actions()
             time.sleep(random.uniform(1, 2))
-        except:
+        except Exception:
             pass
 
 def is_stream_live(driver):
     try:
         offline_text = driver.find_elements(By.XPATH, "//div[contains(text(), 'offline') or contains(text(), 'Offline')]")
         return len(offline_text) == 0
-    except:
+    except Exception:
         return False
 
 def start_bot():
+    global bot_running, watching, points, start_timestamp
     options = Options()
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
@@ -79,23 +98,26 @@ def start_bot():
         driver.get("https://kick.com/")
         time.sleep(5)
 
-        if os.path.exists("cookies.pkl") and load_cookies(driver):
+        if os.path.exists("cookies.pkl"):
+            load_cookies(driver)
             driver.refresh()
             time.sleep(5)
         else:
             login(driver)
 
         start_time = time.time()
-        while load_status()["bot_running"] and (time.time() - start_time < 8 * 60 * 60):
+        while bot_running and (time.time() - start_time < 8 * 60 * 60):
             driver.get(STREAM_URL)
             time.sleep(5)
 
-            status = load_status()
             watching = is_stream_live(driver)
-            points = status["points"] + 1 if watching else status["points"]
+            if watching:
+                print("✅ يشاهد البث الآن.")
+                points += 1
+            else:
+                print("⌛ البث غير متاح حالياً...")
 
-            print("✅ يشاهد البث الآن." if watching else "⌛ البث غير متاح حالياً...")
-            save_status(True, watching, points, status["start_timestamp"])
+            save_current_status()
             random_human_behavior(driver)
             time.sleep(60)
 
@@ -104,8 +126,9 @@ def start_bot():
     finally:
         if driver:
             driver.quit()
-        status = load_status()
-        save_status(False, False, status["points"], 0)
+        bot_running = False
+        watching = False
+        save_current_status()
         print("🛑 تم إيقاف البوت.")
 
 @app.route('/')
@@ -120,25 +143,29 @@ def index():
 
 @app.route('/start')
 def start():
-    global bot_thread
-    status = load_status()
-    if not status["bot_running"]:
-        save_status(True, False, status["points"], time.time())
+    global bot_running, bot_thread, start_timestamp
+    if not bot_running:
+        bot_running = True
+        start_timestamp = time.time()
+        save_current_status()
         bot_thread = threading.Thread(target=start_bot)
         bot_thread.start()
     return redirect(url_for('index'))
 
 @app.route('/stop')
 def stop():
-    status = load_status()
-    save_status(False, False, status["points"], 0)
+    global bot_running
+    bot_running = False
+    save_current_status()
     return redirect(url_for('index'))
 
 @app.route('/reset')
 def reset():
-    status = load_status()
-    save_status(status["bot_running"], status["watching"], 0, status["start_timestamp"])
+    global points
+    points = 0
+    save_current_status()
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
+    initialize_status()
     app.run(debug=True)
