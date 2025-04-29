@@ -15,6 +15,8 @@ app = Flask(__name__)
 bot_thread = None
 bot_running = False
 start_timestamp = 0
+watching = False
+points = 0
 
 USERNAME = "aljrah49"
 PASSWORD = "123456789Mmm."
@@ -42,6 +44,13 @@ def login(driver):
     time.sleep(8)
     save_cookies(driver)
 
+def is_stream_online(driver):
+    try:
+        title = driver.find_element(By.CLASS_NAME, "offline-banner")
+        return False
+    except:
+        return True
+
 def random_human_behavior(driver):
     actions = ActionChains(driver)
     for _ in range(1, 2):
@@ -51,13 +60,12 @@ def random_human_behavior(driver):
             actions.move_by_offset(x_offset, y_offset).perform()
             actions.reset_actions()
             time.sleep(random.uniform(1, 2))
-        except Exception:
+        except:
             pass
 
 def start_bot():
-    global bot_running
+    global bot_running, watching, points
     options = Options()
-    options.binary_location = "/opt/render/project/.render/chrome/opt/google/chrome/chrome"
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
@@ -79,10 +87,26 @@ def start_bot():
             login(driver)
 
         driver.get(STREAM_URL)
-        print("✅ دخل البث بنجاح!")
+        time.sleep(5)
+
+        if is_stream_online(driver):
+            watching = True
+            print("✅ البث شغال! بدأ المشاهدة.")
+        else:
+            watching = False
+            print("⏳ البث غير شغال حالياً. في انتظار التشغيل.")
 
         start_time = time.time()
+        last_point_time = time.time()
+
         while bot_running and (time.time() - start_time < 8 * 60 * 60):
+            if is_stream_online(driver):
+                watching = True
+                if time.time() - last_point_time >= 60:
+                    points += 1
+                    last_point_time = time.time()
+            else:
+                watching = False
             random_human_behavior(driver)
             time.sleep(random.randint(30, 60))
 
@@ -92,12 +116,17 @@ def start_bot():
         if driver:
             driver.quit()
         bot_running = False
+        watching = False
         print("🛑 تم إيقاف البوت.")
 
 @app.route('/')
 def index():
-    global bot_running, start_timestamp
-    return render_template('index.html', bot_running=bot_running, start_time=int(start_timestamp) if bot_running else None)
+    global bot_running, start_timestamp, watching, points
+    return render_template('index.html',
+                           bot_running=bot_running,
+                           start_time=int(start_timestamp) if bot_running else None,
+                           watching=watching,
+                           points=points)
 
 @app.route('/start')
 def start():
@@ -113,4 +142,10 @@ def start():
 def stop():
     global bot_running
     bot_running = False
+    return redirect(url_for('index'))
+
+@app.route('/reset')
+def reset():
+    global points
+    points = 0
     return redirect(url_for('index'))
