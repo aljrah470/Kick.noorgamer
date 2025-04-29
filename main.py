@@ -14,7 +14,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 app = Flask(__name__)
 bot_thread = None
 bot_running = False
-start_timestamp = None  # <-- هذا هو المتغير الذي كان ناقص
+start_timestamp = 0
 
 USERNAME = "aljrah49"
 PASSWORD = "123456789Mmm."
@@ -96,7 +96,7 @@ def start_bot():
 @app.route('/')
 def index():
     global bot_running, start_timestamp
-    return render_template('index.html', bot_running=bot_running, start_time=start_timestamp)
+    return render_template('index.html', bot_running=bot_running, start_time=int(start_timestamp) if bot_running else None)
 
 @app.route('/start')
 def start():
