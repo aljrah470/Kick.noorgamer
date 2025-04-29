@@ -2,94 +2,121 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم البوت - Kick.noorgamer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kick.noorgamer Bot</title>
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #111;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            width: 60%;
+            margin: auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
-            color: #0f0;
-            margin-bottom: 20px;
+            color: #333;
         }
 
-        .status {
-            font-size: 1.5rem;
-            margin: 10px;
-        }
-
-        .btn {
-            display: inline-block;
+        .button {
             padding: 15px 30px;
-            font-size: 1.2rem;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
+            font-size: 16px;
             margin: 10px;
-            width: 200px;
-            text-align: center;
+            border-radius: 5px;
             text-decoration: none;
-            transition: background 0.3s;
+            color: #fff;
+            cursor: pointer;
+            display: inline-block;
+            transition: background-color 0.3s ease;
         }
 
         .start {
             background-color: #28a745;
-            color: white;
+        }
+
+        .stop {
+            background-color: #dc3545;
         }
 
         .start:hover {
             background-color: #218838;
         }
 
-        .stop {
-            background-color: #dc3545;
-            color: white;
-        }
-
         .stop:hover {
             background-color: #c82333;
         }
 
-        .info-box {
-            background: #222;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
-            width: 80%;
-            max-width: 500px;
-            text-align: center;
+        .status {
+            font-size: 18px;
+            font-weight: bold;
         }
 
+        .status.active {
+            color: green;
+        }
+
+        .status.inactive {
+            color: red;
+        }
+
+        .timer {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #333;
+        }
     </style>
+    <script>
+        function updateTimer(startTimestamp) {
+            setInterval(() => {
+                const now = Date.now() / 1000;
+                const elapsed = Math.floor(now - startTimestamp);
+
+                const hours = Math.floor(elapsed / 3600);
+                const minutes = Math.floor((elapsed % 3600) / 60);
+                const seconds = elapsed % 60;
+
+                document.getElementById("timer").textContent =
+                    `${hours} ساعة، ${minutes} دقيقة، ${seconds} ثانية`;
+            }, 1000);
+        }
+    </script>
 </head>
 <body>
-    <h1>لوحة تحكم بوت Kick.noorgamer</h1>
 
-    <div class="status">
-        {% if bot_running %}
-            <p style="color: #0f0;">الحالة: <strong>البوت شغال</strong></p>
-            <a href="/stop" class="btn stop">إيقاف البوت</a>
-        {% else %}
-            <p style="color: #f00;">الحالة: <strong>البوت متوقف</strong></p>
-            <a href="/start" class="btn start">تشغيل البوت</a>
-        {% endif %}
-    </div>
+    <div class="container">
+        <h1>Kick.noorgamer Bot</h1>
+        
+        <div class="status {{ 'active' if bot_running else 'inactive' }}">
+            {% if bot_running %}
+                <p>البوت شغال</p>
+            {% else %}
+                <p>البوت متوقف</p>
+            {% endif %}
+        </div>
 
-    <div class="info-box">
+        <div>
+            {% if bot_running %}
+                <a href="/stop" class="button stop">إيقاف البوت</a>
+            {% else %}
+                <a href="/start" class="button start">تشغيل البوت</a>
+            {% endif %}
+        </div>
+
         {% if bot_running and start_time %}
-            <p>بدأ التشغيل منذ: {{ ((time.time() - start_time) // 60) | int }} دقيقة</p>
-        {% else %}
-            <p>لم يتم تشغيل البوت بعد.</p>
+            <p class="timer">مدة تشغيل البوت:</p>
+            <p id="timer" class="timer">جارٍ الحساب...</p>
+            <script>
+                updateTimer({{ start_time }});
+            </script>
         {% endif %}
     </div>
+
 </body>
 </html>
