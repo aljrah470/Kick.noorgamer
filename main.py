@@ -57,13 +57,11 @@ def random_human_behavior(driver):
 def start_bot():
     global bot_running
     options = Options()
+    options.binary_location = "/opt/render/project/.render/chrome/opt/google/chrome/chrome"
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-blink-features=AutomationControlled")
-
-    # السطر المهم عشان تحدد مكان الكروم في Render
-    options.binary_location = "/usr/bin/google-chrome"
 
     driver = None
     try:
