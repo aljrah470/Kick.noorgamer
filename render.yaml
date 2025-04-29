@@ -2,9 +2,10 @@ services:
   - type: web
     name: kick-noorgamer
     env: python
-    buildCommand: ./render-build.sh && pip install -r requirements.txt
+    buildCommand: |
+      apt-get update && apt-get install -y chromium-browser
+      pip install -r requirements.txt
     startCommand: gunicorn wsgi:app
-    plan: free
     envVars:
-      - key: PORT
-        value: 10000
+      - key: CHROME_BINARY
+        value: /usr/bin/chromium-browser
