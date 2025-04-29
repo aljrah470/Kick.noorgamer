@@ -1,16 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
-    <title>Kick.noorgamer Bot</title>
+    <meta charset="UTF-8">
+    <title>لوحة تحكم البوت - Kick.noorgamer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .container {
+            margin-top: 80px;
+        }
+
+        .status {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-running {
+            color: green;
+        }
+
+        .status-stopped {
+            color: red;
+        }
+
+        .btn {
+            padding: 20px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 10px;
+            display: inline-block;
+            width: 200px;
+        }
+
+        .btn-start {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-stop {
+            background-color: #c0392b;
+            color: white;
+        }
+
+        .timer {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #555;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #ddd;
+            padding: 10px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Kick.noorgamer Bot</h1>
+
+<header>
+    بوت Kick.noorgamer
+</header>
+
+<div class="container">
     {% if bot_running %}
-        <p style="color: green;">البوت شغال</p>
-        <a href="/stop">إيقاف البوت</a>
+        <div class="status status-running">البوت شغّال الآن</div>
+        <a href="/stop" class="btn btn-stop">إيقاف البوت</a>
+        <div class="timer">
+            بدأ منذ: <span id="timer"></span>
+        </div>
+        <script>
+            const startTime = new Date({{ start_time | int }} * 1000);
+            function updateTimer() {
+                const now = new Date();
+                const diff = Math.floor((now - startTime) / 1000);
+                const hours = Math.floor(diff / 3600);
+                const minutes = Math.floor((diff % 3600) / 60);
+                const seconds = diff % 60;
+                document.getElementById('timer').textContent =
+                    `${hours} ساعة، ${minutes} دقيقة، ${seconds} ثانية`;
+            }
+            setInterval(updateTimer, 1000);
+            updateTimer();
+        </script>
     {% else %}
-        <p style="color: red;">البوت متوقف</p>
-        <a href="/start">تشغيل البوت</a>
+        <div class="status status-stopped">البوت متوقف</div>
+        <a href="/start" class="btn btn-start">تشغيل البوت</a>
     {% endif %}
+</div>
+
+<footer>
+    &copy; 2025 Kick.noorgamer - إدارة البوت الخاصة بك
+</footer>
+
 </body>
 </html>
