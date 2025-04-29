@@ -9,7 +9,7 @@
 
     {% if bot_running %}
         <p>الحالة: <strong style="color: green;">يعمل</strong></p>
-        <p>بدأ التشغيل منذ: {{ (( ( ( ( (loop.time() - start_time) // 60 ) % 60 ) ) ) | int) }} دقيقة</p>
+        <p>بدأ التشغيل منذ: {{ elapsed_minutes }} دقيقة</p>
         <p>البث: 
             {% if watching %}
                 <strong style="color: green;">مشاهد حالياً</strong>
