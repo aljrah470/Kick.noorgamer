@@ -3,7 +3,6 @@ import os
 
 STATUS_FILE = "bot_status.json"
 
-# حالة افتراضية في حال عدم وجود ملف سابق
 default_status = {
     "bot_running": False,
     "watching": False,
@@ -27,5 +26,8 @@ def save_status(bot_running, watching, points, start_timestamp):
         "points": points,
         "start_timestamp": start_timestamp
     }
-    with open(STATUS_FILE, "w") as file:
-        json.dump(status, file)
+    try:
+        with open(STATUS_FILE, "w") as file:
+            json.dump(status, file)
+    except Exception as e:
+        print(f"⚠️ خطأ أثناء حفظ الحالة: {e}")
