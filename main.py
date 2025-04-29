@@ -3,6 +3,7 @@ import threading
 import os
 import time
 import pickle
+import random
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -110,7 +111,3 @@ def stop():
     global bot_running
     bot_running = False
     return redirect(url_for('index'))
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
