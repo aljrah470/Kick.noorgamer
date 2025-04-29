@@ -1,86 +1,30 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
+    <title>Kick.noorgamer</title>
     <meta charset="UTF-8">
-    <title>تحكم في بوت Kick.noorgamer</title>
-    <style>
-        body {
-            font-family: 'Tahoma', sans-serif;
-            background-color: #111;
-            color: #eee;
-            text-align: center;
-            padding-top: 50px;
-        }
-
-        h1 {
-            color: #0f0;
-        }
-
-        .status {
-            font-size: 24px;
-            margin: 20px 0;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 20px 40px;
-            font-size: 22px;
-            font-weight: bold;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            text-decoration: none;
-            color: white;
-            margin: 10px;
-        }
-
-        .start {
-            background-color: #28a745;
-        }
-
-        .stop {
-            background-color: #dc3545;
-        }
-
-        .timer {
-            margin-top: 20px;
-            font-size: 20px;
-            color: #ccc;
-        }
-    </style>
 </head>
 <body>
-    <h1>لوحة تحكم البوت</h1>
+    <h1>Bot Controller</h1>
 
     {% if bot_running %}
-        <div class="status" style="color: #0f0;">البوت يعمل حالياً</div>
-        <a href="/stop" class="button stop">إيقاف البوت</a>
+        <p>الحالة: <strong style="color: green;">يعمل</strong></p>
+        <p>بدأ التشغيل منذ: {{ (( ( ( ( (loop.time() - start_time) // 60 ) % 60 ) ) ) | int) }} دقيقة</p>
+        <p>البث: 
+            {% if watching %}
+                <strong style="color: green;">مشاهد حالياً</strong>
+            {% else %}
+                <strong style="color: orange;">بانتظار البث</strong>
+            {% endif %}
+        </p>
+        <p>النقاط: {{ points }}</p>
+        <a href="/stop">إيقاف البوت</a>
     {% else %}
-        <div class="status" style="color: #f00;">البوت متوقف</div>
-        <a href="/start" class="button start">تشغيل البوت</a>
+        <p>الحالة: <strong style="color: red;">متوقف</strong></p>
+        <a href="/start">تشغيل البوت</a>
     {% endif %}
 
-    {% if start_time %}
-        <div class="timer" id="runtime">مدة التشغيل: ...</div>
-    {% endif %}
-
-    <script>
-        {% if start_time %}
-        const startTimestamp = {{ start_time }};
-        const runtimeElem = document.getElementById("runtime");
-
-        function updateRuntime() {
-            const now = Math.floor(Date.now() / 1000);
-            const elapsed = now - startTimestamp;
-            const hours = Math.floor(elapsed / 3600);
-            const minutes = Math.floor((elapsed % 3600) / 60);
-            const seconds = elapsed % 60;
-            runtimeElem.textContent = `مدة التشغيل: ${hours} ساعة، ${minutes} دقيقة، ${seconds} ثانية`;
-        }
-
-        setInterval(updateRuntime, 1000);
-        updateRuntime();
-        {% endif %}
-    </script>
+    <br><br>
+    <a href="/reset" onclick="return confirm('هل أنت متأكد أنك تريد إعادة تعيين النقاط؟');">إعادة تعيين النقاط</a>
 </body>
 </html>
