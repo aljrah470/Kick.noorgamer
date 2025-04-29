@@ -10,13 +10,10 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
+from status_manager import load_status, update_status  # استيراد إدارة الحالة
 
 app = Flask(__name__)
 bot_thread = None
-bot_running = False
-start_timestamp = 0
-points = 0
-watching = False
 
 USERNAME = "aljrah49"
 PASSWORD = "123456789Mmm."
@@ -95,8 +92,10 @@ def start_bot():
             if watching:
                 print("✅ يشاهد البث الآن.")
                 points += 1
+                update_status(watching=True, points=points)  # تحديث الحالة أثناء مشاهدة البث
             else:
                 print("⌛ البث غير متاح حالياً...")
+                update_status(watching=False)  # تحديث الحالة أثناء عدم مشاهدة البث
 
             random_human_behavior(driver)
             time.sleep(60)
@@ -106,40 +105,36 @@ def start_bot():
     finally:
         if driver:
             driver.quit()
-        bot_running = False
-        watching = False
+        update_status(bot_running=False, watching=False)  # إيقاف البوت
         print("🛑 تم إيقاف البوت.")
 
 @app.route('/')
 def index():
-    global bot_running, start_timestamp, watching, points
-    elapsed_minutes = int((time.time() - start_timestamp) / 60) if bot_running else 0
+    status = load_status()  # تحميل الحالة من الملف
+    elapsed_minutes = int((time.time() - status["start_timestamp"]) / 60) if status["bot_running"] else 0
     return render_template('index.html',
-                           bot_running=bot_running,
+                           bot_running=status["bot_running"],
                            elapsed_minutes=elapsed_minutes,
-                           watching=watching,
-                           points=points)
+                           watching=status["watching"],
+                           points=status["points"])
 
 @app.route('/start')
 def start():
-    global bot_running, bot_thread, start_timestamp
-    if not bot_running:
-        bot_running = True
-        start_timestamp = time.time()
-        bot_thread = threading.Thread(target=start_bot)
-        bot_thread.start()
+    status = load_status()  # تحميل الحالة من الملف
+    if not status["bot_running"]:
+        update_status(bot_running=True, start_timestamp=time.time())
+        thread = threading.Thread(target=start_bot)
+        thread.start()
     return redirect(url_for('index'))
 
 @app.route('/stop')
 def stop():
-    global bot_running
-    bot_running = False
+    update_status(bot_running=False, watching=False)  # إيقاف البوت
     return redirect(url_for('index'))
 
 @app.route('/reset')
 def reset():
-    global points
-    points = 0
+    update_status(points=0)  # إعادة تعيين النقاط
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
