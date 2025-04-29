@@ -15,8 +15,8 @@ app = Flask(__name__)
 bot_thread = None
 bot_running = False
 start_timestamp = 0
-watching = False
 points = 0
+watching = False
 
 USERNAME = "aljrah49"
 PASSWORD = "123456789Mmm."
@@ -44,13 +44,6 @@ def login(driver):
     time.sleep(8)
     save_cookies(driver)
 
-def is_stream_online(driver):
-    try:
-        title = driver.find_element(By.CLASS_NAME, "offline-banner")
-        return False
-    except:
-        return True
-
 def random_human_behavior(driver):
     actions = ActionChains(driver)
     for _ in range(1, 2):
@@ -60,8 +53,15 @@ def random_human_behavior(driver):
             actions.move_by_offset(x_offset, y_offset).perform()
             actions.reset_actions()
             time.sleep(random.uniform(1, 2))
-        except:
+        except Exception:
             pass
+
+def is_stream_live(driver):
+    try:
+        offline_text = driver.find_elements(By.XPATH, "//div[contains(text(), 'offline') or contains(text(), 'Offline')]")
+        return len(offline_text) == 0
+    except Exception:
+        return False
 
 def start_bot():
     global bot_running, watching, points
@@ -86,29 +86,21 @@ def start_bot():
         else:
             login(driver)
 
-        driver.get(STREAM_URL)
-        time.sleep(5)
-
-        if is_stream_online(driver):
-            watching = True
-            print("✅ البث شغال! بدأ المشاهدة.")
-        else:
-            watching = False
-            print("⏳ البث غير شغال حالياً. في انتظار التشغيل.")
-
         start_time = time.time()
-        last_point_time = time.time()
-
         while bot_running and (time.time() - start_time < 8 * 60 * 60):
-            if is_stream_online(driver):
-                watching = True
-                if time.time() - last_point_time >= 60:
-                    points += 1
-                    last_point_time = time.time()
+            driver.get(STREAM_URL)
+            time.sleep(5)
+
+            watching = is_stream_live(driver)
+            if watching:
+                print("✅ يشاهد البث الآن.")
+                global points
+                points += 1
             else:
-                watching = False
+                print("⌛ البث غير متاح حالياً...")
+
             random_human_behavior(driver)
-            time.sleep(random.randint(30, 60))
+            time.sleep(60)  # دقيقة واحدة بين كل فحص
 
     except Exception as e:
         print("❌ حصل خطأ:", e)
@@ -122,9 +114,10 @@ def start_bot():
 @app.route('/')
 def index():
     global bot_running, start_timestamp, watching, points
+    elapsed_minutes = int((time.time() - start_timestamp) / 60) if bot_running else 0
     return render_template('index.html',
                            bot_running=bot_running,
-                           start_time=int(start_timestamp) if bot_running else None,
+                           elapsed_minutes=elapsed_minutes,
                            watching=watching,
                            points=points)
 
@@ -149,3 +142,6 @@ def reset():
     global points
     points = 0
     return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run()
