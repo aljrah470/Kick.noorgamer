@@ -62,6 +62,9 @@ def start_bot():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-blink-features=AutomationControlled")
 
+    # السطر المهم عشان تحدد مكان الكروم في Render
+    options.binary_location = "/usr/bin/google-chrome"
+
     driver = None
     try:
         service = Service(ChromeDriverManager().install())
