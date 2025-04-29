@@ -1,30 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
-    <title>Kick.noorgamer</title>
     <meta charset="UTF-8">
+    <title>بوت Kick Noorgamer</title>
+    <style>
+        body {
+            direction: rtl;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 30px;
+        }
+        .btn {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .start {
+            background-color: #28a745;
+            color: white;
+        }
+        .stop {
+            background-color: #dc3545;
+            color: white;
+        }
+        .reset {
+            background-color: #ffc107;
+            color: black;
+        }
+        .status-box {
+            margin: 20px auto;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: white;
+            width: 60%;
+        }
+        .points {
+            font-size: 32px;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Bot Controller</h1>
+    <h1>لوحة تحكم البوت</h1>
 
-    {% if bot_running %}
-        <p>الحالة: <strong style="color: green;">يعمل</strong></p>
-        <p>بدأ التشغيل منذ: {{ elapsed_minutes }} دقيقة</p>
-        <p>البث: 
-            {% if watching %}
-                <strong style="color: green;">مشاهد حالياً</strong>
-            {% else %}
-                <strong style="color: orange;">بانتظار البث</strong>
-            {% endif %}
-        </p>
-        <p>النقاط: {{ points }}</p>
-        <a href="/stop">إيقاف البوت</a>
-    {% else %}
-        <p>الحالة: <strong style="color: red;">متوقف</strong></p>
-        <a href="/start">تشغيل البوت</a>
-    {% endif %}
+    <div class="points">
+        النقاط: {{ points }}
+    </div>
 
-    <br><br>
-    <a href="/reset" onclick="return confirm('هل أنت متأكد أنك تريد إعادة تعيين النقاط؟');">إعادة تعيين النقاط</a>
+    <a href="{{ url_for('start') }}"><button class="btn start">بدء البوت</button></a>
+
+    <div class="status-box">
+        <p>حالة البوت: <strong>{{ 'يعمل' if bot_running else 'متوقف' }}</strong></p>
+        <p>البث الآن: <strong>{{ 'مباشر' if watching else 'غير مباشر' }}</strong></p>
+        <p>الوقت منذ بدء البوت: {{ elapsed_minutes }} دقيقة</p>
+    </div>
+
+    <a href="{{ url_for('stop') }}"><button class="btn stop">إيقاف البوت</button></a>
+    <br>
+    <a href="{{ url_for('reset') }}"><button class="btn reset">إعادة تعيين النقاط</button></a>
 </body>
 </html>
