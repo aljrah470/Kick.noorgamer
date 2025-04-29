@@ -46,7 +46,7 @@ def login(driver):
 
 def random_human_behavior(driver):
     actions = ActionChains(driver)
-    for _ in range(1, 2):
+    for _ in range(1):
         x_offset = random.randint(-100, 100)
         y_offset = random.randint(-100, 100)
         try:
@@ -94,13 +94,12 @@ def start_bot():
             watching = is_stream_live(driver)
             if watching:
                 print("✅ يشاهد البث الآن.")
-                global points
                 points += 1
             else:
                 print("⌛ البث غير متاح حالياً...")
 
             random_human_behavior(driver)
-            time.sleep(60)  # دقيقة واحدة بين كل فحص
+            time.sleep(60)
 
     except Exception as e:
         print("❌ حصل خطأ:", e)
@@ -144,4 +143,4 @@ def reset():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
